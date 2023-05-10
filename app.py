@@ -49,8 +49,10 @@ def home():
         f"/api/v1.0/precipitation<br/>"
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
-        f"/api/v1.0/<start> (Date Format: YYYY/MM/DD)<br/>"
-        f"/api/v1.0/<start>/<end> (Date Format: YYYY/MM/DD)<br/>"
+        "These next two are 'Start' and 'Start/End' dates to search by<br/>"
+        "Date Formatting: YYYY-MM-DD<br/>"
+        f"/api/v1.0/<start><br/>"
+        f"/api/v1.0/<start>/<end><br/>"
     )
 
 
@@ -71,6 +73,7 @@ def precip():
     # Close Session
     session.close()
 
+    # Commiting values for reading
     precip_date = []
     for date, prcp in results1:
         precip_dict = {}
@@ -91,6 +94,7 @@ def stat():
     # Close Session
     session.close()
 
+    # Commiting values for reading
     stations = []
     for station, id in results2:
         station_dict = {}
@@ -99,6 +103,7 @@ def stat():
         stations.append(station_dict)
 
     return jsonify(stations)
+
 
 @app.route("/api/v1.0/tobs")
 def tobs():
@@ -123,7 +128,10 @@ def tobs():
                             filter(Measurement.station == station_1).\
                                 filter(Measurement.date >= last_year).\
                                     group_by(Measurement.date).all()
-    
+    # Close Session
+    session.close()
+
+    # Commiting values for reading
     tobs_values = []
     for date, station, tobs in MAS_weather:
         tobs_values_dict = {}
@@ -134,6 +142,53 @@ def tobs():
 
     return jsonify(tobs_values)
         
+@app.route("/api/v1.0/<start>")
+def start(start):
+    # Create session (link) from Python to the DB
+    session = Session(engine)
+
+    # Get the Min, Max, and AVG temps from the start date
+    result3 = session.query(func.min(Measurement.tobs), func.max(Measurement.tobs), func.avg(Measurement.tobs)).\
+                                                filter(Measurement.date >= start).all() 
+    
+    # Close Session
+    session.close()
+
+    # Commiting values for reading
+    start_tobs_values = []
+    for min, max, avg in result3:
+        start_tobs_values_dict = {}
+        start_tobs_values_dict["min"] = min
+        start_tobs_values_dict["max"] = max
+        start_tobs_values_dict["avg"] = avg
+        start_tobs_values.append(start_tobs_values_dict)
+
+    return jsonify(start_tobs_values)
+
+@app.route("/api/v1.0/<start>/<end>")
+def start_end(start,end):
+    # Create session (link) from Python to the DB
+    session = Session(engine)
+
+    # Get the Min, Max, and AVG temps from the start date until the end date
+    result4 = session.query(func.min(Measurement.tobs), func.max(Measurement.tobs), func.avg(Measurement.tobs)).\
+                                                filter(Measurement.date >= start).\
+                                                    filter(Measurement.date <= end).all() 
+
+    # Close Session
+    session.close()
+
+    # Commiting values for reading
+    start_end_tobs_values = []
+    for min, max, avg in result4:
+        start_end_tobs_values_dict = {}
+        start_end_tobs_values_dict["min"] = min
+        start_end_tobs_values_dict["max"] = max
+        start_end_tobs_values_dict["avg"] = avg
+        start_end_tobs_values.append(start_end_tobs_values_dict)
+
+    return jsonify(start_end_tobs_values)
+
 
 
 if __name__ == '__main__':
