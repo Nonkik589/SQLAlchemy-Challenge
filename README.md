@@ -10,18 +10,23 @@
 
 ## API
 Contains these routes:
+
 A precipitation route that:
+
     -Returns json with the date as the key and the value as the precipitation
     -Only returns the jsonified precipitation data for the last year in the database 
 
 A stations route that:
+
     -Returns jsonified data of all of the stations in the database
 
 A tobs route that:
+
     -Returns jsonified data for the most active station
     -Only returns the jsonified data for the last year of data
 
 A start route that:
+
     -Accepts the start date as a parameter from the URL
     -Returns the min, max, and average temperatures calculated from the given start date to the end of the dataset 
 
